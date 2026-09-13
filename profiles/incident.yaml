@@ -1,0 +1,11 @@
+version: 1
+name: incident
+purpose: critical blocker or incident response
+
+defaults:
+  model_class: astra
+  reasoning: low
+  fast_mode: false
+  max_agents: 1
+  sandbox: workspace-write
+  remote_writes: review
