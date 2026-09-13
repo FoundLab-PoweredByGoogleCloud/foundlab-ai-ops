@@ -17,6 +17,7 @@ class GoogleCodingDiagnostics:
     antigravity_version: str | None = None
     settings_found: bool = False
     approval_mode: str | None = None
+    yolo_disabled: bool | None = None
     environment_redaction: bool | None = None
     telemetry_enabled: bool | None = None
     telemetry_target: str | None = None
@@ -99,10 +100,15 @@ def diagnose(settings_path: Path | None = None) -> GoogleCodingDiagnostics:
     before_tool = hooks.get("BeforeTool", [])
 
     approval_mode = general.get("defaultApprovalMode")
+    yolo_disabled = security.get("disableYoloMode")
     env_redaction = redaction.get("enabled")
 
-    if approval_mode == "auto_edit":
-        warnings.append("defaultApprovalMode auto_edit permits automatic edit tools")
+    if approval_mode in {"auto_edit", "yolo"}:
+        warnings.append(
+            f"defaultApprovalMode {approval_mode} permits or implies automatic tool execution"
+        )
+    if yolo_disabled is not True:
+        warnings.append("security.disableYoloMode is not explicitly enabled")
     if env_redaction is not True:
         warnings.append("environment variable secret redaction is not explicitly enabled")
     if telemetry.get("enabled") is True and telemetry.get("logPrompts", True) is True:
@@ -117,6 +123,7 @@ def diagnose(settings_path: Path | None = None) -> GoogleCodingDiagnostics:
         antigravity_version=antigravity_version,
         settings_found=True,
         approval_mode=approval_mode,
+        yolo_disabled=yolo_disabled,
         environment_redaction=env_redaction,
         telemetry_enabled=telemetry.get("enabled"),
         telemetry_target=telemetry.get("target"),
