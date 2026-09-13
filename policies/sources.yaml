@@ -1,0 +1,19 @@
+version: 1
+
+authority:
+  ai_operating_policy: repository
+  repository_state: git
+  pull_request_state: github
+  backlog: linear
+  approved_documents: google_drive
+  external_correspondence: gmail
+  calendar_state: google_calendar
+  cloud_runtime: gcp
+  cloud_logs: gcp
+  personal_preferences: chatgpt_memory
+
+rules:
+  - memory_is_context_not_authority
+  - live_state_must_be_queried_from_its_authoritative_system
+  - stale_memory_must_not_be_promoted_to_current_fact
+  - source_conflicts_must_be_reported_not_silently_resolved
