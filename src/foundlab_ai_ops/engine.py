@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from .config import policy
+from .config import load_yaml, policy, repo_root
 from .models import (
     Complexity,
     ComputeClass,
@@ -95,12 +95,30 @@ def _provider(task: Task) -> tuple[Provider, str]:
     return Provider(str(defaults.get("provider", "openai"))), "default agentic provider"
 
 
-def _provider_compatibility_issue(task: Task, provider: Provider) -> str | None:
+def _allowed_surfaces(provider: Provider) -> set[str]:
+    registry = load_yaml(repo_root() / "providers" / "registry.yaml")
+    entry = registry.get("providers", {}).get(provider.value, {})
+    return {str(surface) for surface in entry.get("surfaces", [])}
+
+
+def _provider_compatibility_issue(
+    task: Task,
+    provider: Provider,
+    surface: str,
+) -> str | None:
     if provider == Provider.deterministic and _requires_remote_capability(task):
         return (
             "deterministic provider is incompatible with required remote "
             "capabilities; select an agentic provider or remove the remote dependency"
         )
+
+    allowed_surfaces = _allowed_surfaces(provider)
+    if surface not in allowed_surfaces:
+        return (
+            f"surface {surface!r} is not registered for provider {provider.value!r}; "
+            f"select one of {sorted(allowed_surfaces)!r}"
+        )
+
     return None
 
 
@@ -211,7 +229,7 @@ def plan(task: Task, quota: QuotaSnapshot) -> Decision:
             ],
         )
 
-    compatibility_issue = _provider_compatibility_issue(task, provider)
+    compatibility_issue = _provider_compatibility_issue(task, provider, surface)
     if compatibility_issue is not None:
         return Decision(
             decision=DecisionStatus.blocked,
