@@ -65,13 +65,21 @@ def _provider(task: Task) -> tuple[Provider, str]:
                 task.requirements.google_docs,
                 task.requirements.linear,
                 task.requirements.drive,
+                task.requirements.managed_mcp,
                 task.requested_actions,
             ]
         )
     ):
         return Provider.deterministic, "bounded work can run without an LLM provider"
 
-    if task.requirements.gcp or task.requirements.google_docs:
+    # v0.2 managed_mcp currently denotes entries from mcp/google-managed.yaml.
+    # A task that requires one of those endpoints must not be routed to local-only
+    # deterministic execution.
+    if (
+        task.requirements.gcp
+        or task.requirements.google_docs
+        or task.requirements.managed_mcp
+    ):
         return Provider.google, "Google authority/capabilities are required"
 
     return Provider(str(defaults.get("provider", "openai"))), "default agentic provider"
@@ -247,7 +255,9 @@ def _checks(task: Task) -> list[str]:
         checks.append("repository_state")
     if task.requested_actions:
         checks.append("permission_guard")
-    if task.requirements.managed_mcp:
+    # Use effective dependencies, not only explicitly declared ones.
+    # google_docs implicitly adds developer_knowledge in _managed_mcp().
+    if _managed_mcp(task):
         checks.append("mcp_registry")
     return checks
 
