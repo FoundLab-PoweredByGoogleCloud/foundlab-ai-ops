@@ -1,0 +1,39 @@
+version: 2
+
+defaults:
+  provider: openai
+  openai_surface:
+    engineering: codex
+    general: openai_api
+  google_surface:
+    engineering: google_coding
+    general: gemini_api
+
+rules:
+  - id: deterministic-bounded
+    when: bounded_repetitive_no_external_authority
+    provider: deterministic
+    surface: local_python
+  - id: google-authority
+    when: gcp_or_google_developer_knowledge_required
+    provider: google
+  - id: explicit-provider
+    when: provider_preference_present
+    precedence: highest
+
+execution_modes:
+  interactive:
+    intent: human_waiting
+  standard:
+    intent: normal_agentic_execution
+  background:
+    intent: long_running_server_side_orchestrated_work
+  flex:
+    intent: deferred_best_effort_cost_sensitive_work
+  batch:
+    intent: bulk_or_evaluation_work
+
+principles:
+  - route_by_provider_surface_mode_and_compute_class
+  - prefer_managed_capabilities_over_custom_wrappers
+  - do_not_use_reasoning_escalation_to_compensate_for_missing_evidence
