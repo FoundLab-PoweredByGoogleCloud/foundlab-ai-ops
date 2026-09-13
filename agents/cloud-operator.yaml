@@ -1,0 +1,15 @@
+version: 1
+id: cloud-operator
+description: Google Cloud inspection and explicitly reviewed operations.
+defaults:
+  model_class: sol
+  reasoning: medium
+  max_agents: 1
+skills: [gcp-runtime-audit, incident-triage]
+capabilities: [gcp, github]
+permissions:
+  inspect: allow
+  deploy: review
+  iam_change: deny
+  destructive: explicit
+memory_namespaces: [organization]
