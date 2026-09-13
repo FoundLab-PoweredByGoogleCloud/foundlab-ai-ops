@@ -22,3 +22,6 @@ task:
   verification:
     required: true
     commands: []
+  requested_actions:
+    - system: github
+      action: read
