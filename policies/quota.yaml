@@ -1,0 +1,20 @@
+version: 1
+
+# Percentages are user-supplied/local snapshots until a supported live telemetry
+# source is explicitly integrated. Never present them as provider-measured truth.
+reserve_percent: 25
+
+thresholds:
+  amber_below: 60
+  red_below: 30
+  critical_below: 10
+
+modes:
+  GREEN:
+    description: normal operation
+  AMBER:
+    description: conserve premium reasoning and speculative parallelism
+  RED:
+    description: reserve high-cost execution for high-risk work
+  CRITICAL:
+    description: preserve incident reserve; non-critical agentic work may be blocked
