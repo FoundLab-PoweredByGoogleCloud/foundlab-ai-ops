@@ -1,0 +1,51 @@
+version: 2
+
+providers:
+  deterministic:
+    role: local_non_llm_execution
+    surfaces:
+      - local_python
+    telemetry:
+      primary: local_journal
+
+  openai:
+    role: agentic_reasoning_and_software_execution
+    surfaces:
+      - chat
+      - work
+      - codex
+      - openai_api
+      - agents_sdk
+    capabilities:
+      - responses_api
+      - skills_api
+      - remote_mcp
+      - agents_sdk_guardrails
+      - agents_sdk_tracing
+    telemetry:
+      chat_work: provider_usage_ui
+      api: provider_usage_api_or_project_billing
+      agents_sdk: tracing
+
+  google:
+    role: google_cloud_and_gemini_execution
+    surfaces:
+      - google_coding
+      - gemini_cli
+      - antigravity
+      - gemini_api
+    capabilities:
+      - managed_google_cloud_mcp
+      - developer_knowledge_mcp
+      - gemini_cli_hooks
+      - gemini_cli_otel
+      - agent_registry
+      - gemini_api_tools
+    telemetry:
+      gemini_cli: opentelemetry
+      gemini_api: provider_usage_and_cloud_observability
+
+rules:
+  - provider_registry_is_capability_metadata_not_live_connection_state
+  - secrets_do_not_belong_in_registry
+  - current_provider_availability_must_be_verified_at_runtime

@@ -1,4 +1,4 @@
-version: 1
+version: 2
 
 authority:
   ai_operating_policy: repository
@@ -10,6 +10,12 @@ authority:
   calendar_state: google_calendar
   cloud_runtime: gcp
   cloud_logs: gcp
+  cloud_metrics: gcp
+  cloud_traces: gcp
+  gcp_quota_state: gcp
+  google_developer_docs: google_developer_knowledge
+  provider_capability_registry: repository
+  runtime_agent_discovery: google_agent_registry
   personal_preferences: chatgpt_memory
 
 rules:
@@ -17,3 +23,4 @@ rules:
   - live_state_must_be_queried_from_its_authoritative_system
   - stale_memory_must_not_be_promoted_to_current_fact
   - source_conflicts_must_be_reported_not_silently_resolved
+  - prefer_provider_managed_knowledge_for_provider_documentation

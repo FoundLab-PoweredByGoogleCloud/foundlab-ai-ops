@@ -1,61 +1,59 @@
-# FoundLab GCP MCP — Capability Specification
+# FoundLab Domain MCP — Scope Specification
 
-Status: **planned / not implemented in v0.1**.
+Status: **domain-specific only; generic GCP wrapper rejected in v0.2**.
 
-## Objective
+## Decision
 
-Expose narrow, typed Google Cloud capabilities to agents without granting arbitrary shell execution or bypassing IAM.
+Google Cloud now provides managed remote MCP servers for Cloud Run, BigQuery, Spanner, Logging, Monitoring, Trace, Pub/Sub, IAM, Resource Manager, Cloud Quotas, Cloud CLI and many other products.
 
-## Identity
+Therefore FoundLab AI Ops MUST NOT implement a generic provider wrapper for capabilities already available through a suitable Google Managed MCP.
 
-Preferred:
-- local: authenticated human + short-lived service-account impersonation;
-- Cloud Run: attached user-managed service account;
-- external CI: Workload Identity Federation.
+See:
+- `mcp/google-managed.yaml`
+- `docs/google-managed-mcp.md`
 
-No persistent service-account private key is required by this design.
+## Remaining FoundLab MCP scope
 
-## Read tools
+A future custom MCP is justified for **FoundLab semantics**, for example:
 
-- `gcp_project_get`
-- `cloudrun_service_get`
-- `cloudrun_revisions_list`
-- `cloudrun_logs_query`
-- `monitoring_metrics_query`
-- `iam_policy_explain`
+- `authority_release_plan`
+- `authority_release_verify`
+- `rex_runtime_evidence_bundle`
+- `decision_journal_verify`
+- `institutional_policy_check`
+- `change_set_authorize`
+- cross-provider evidence correlation.
 
-## Mutation tools
+These are not ordinary Google Cloud CRUD operations.
 
-Mutations must be split into plan/apply.
-
-- `deploy_plan` — produce a dry-run/change set and hash;
-- `deploy_apply` — accept an authorized change-set hash;
-- `rollback_plan`;
-- `rollback_apply`.
-
-IAM mutation is outside the default capability set.
-
-## Required gate ordering
+## Gate ordering
 
 ```text
-MCP request
-   |
-   v
-typed input validation
-   |
-   v
-FoundLab policy evaluation
-   |
-   v
+typed FoundLab request
+        |
+        v
+FoundLab policy
+        |
+        v
+human review when required
+        |
+        v
+provider-native capability / managed MCP
+        |
+        v
 provider IAM
-   |
-   v
+        |
+        v
 operation
-   |
-   v
-evidence / audit record
+        |
+        v
+normalized evidence
 ```
 
-## Non-goal
+## Non-goals
 
-Do not expose `gcloud <arbitrary string>` as an MCP tool.
+- arbitrary `gcloud <string>` proxy;
+- replacement for Google Managed MCP;
+- storage of persistent provider credentials;
+- bypass of IAM or provider approval controls;
+- silent deployment or IAM mutation.

@@ -1,4 +1,4 @@
-version: 1
+version: 2
 
 defaults:
   read: allow
@@ -6,36 +6,63 @@ defaults:
   destructive: deny
 
 systems:
+  workspace:
+    read: allow
+    write: allow
+    destructive: deny
+
+  shell:
+    read: allow
+    write: review
+    destructive: deny
+
+  mcp:
+    read: allow
+    write: review
+    destructive: deny
+
   github:
     read: allow
     write: review
     destructive: explicit
+
   linear:
     read: allow
     write: review
     destructive: explicit
+
   google_drive:
     read: allow
     write: review
     destructive: explicit
+
   gmail:
     read: allow
     write: review
     destructive: deny
+
   google_calendar:
     read: allow
     write: review
     destructive: review
+
   slack:
     read: allow
     write: review
     destructive: explicit
+
   gcp:
     inspect: allow
     deploy: review
     iam_change: deny
     destructive: explicit
 
+  google_managed_mcp:
+    read: allow
+    write: review
+    destructive: explicit
+
 principle: >
   This policy is an additional FoundLab governance boundary and does not replace
-  ChatGPT/plugin permissions, provider IAM, repository protection, or cloud controls.
+  ChatGPT/plugin permissions, Gemini/Codex approval controls, provider IAM,
+  repository protection, MCP IAM deny policies, or cloud controls.

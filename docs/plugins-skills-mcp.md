@@ -1,47 +1,65 @@
 # Plugins, Skills and MCP
 
-Last provider check: **2026-09-12**.
+Version: 0.2.0
 
-## Plugins
+## Plugins / connected apps
 
-OpenAI currently defines a plugin as a package that may include Skills, connected apps, app templates, or combinations of these. Connected apps remain subject to provider authorization, workspace controls, supported read/write actions and approval requirements.
+Connected apps expose account-scoped capabilities. Connection state is runtime state; Git stores policy and capability metadata, not OAuth secrets.
 
-Source:
-https://help.openai.com/en/articles/20001256-plugins-in-codex
-
-FoundLab therefore separates:
-- plugin/capability registration;
-- provider connection state;
-- FoundLab permission policy;
-- provider IAM.
-
-Installation never grants institutional authority by itself.
+Installing an app never grants FoundLab institutional authority by itself.
 
 ## Skills
 
-OpenAI defines Skills as reusable/shareable workflows that may include instructions, examples, resources and code. Personal Skills availability varies by plan/workspace/product surface; Codex support can differ from ChatGPT.
+Skills are workflow source.
 
-Source:
-https://help.openai.com/en/articles/20001066
+FoundLab stores portable Skills in Git and treats provider-native skill systems as deployment targets.
 
-FoundLab stores portable Skills in this repository regardless of whether a particular product surface supports native installation.
+Current targets include:
+- Codex/local skill consumption;
+- OpenAI Skills API with immutable Skill Versions;
+- Google-maintained developer/cloud skills where available.
 
-A Skill tells an executor **how** to work. It does not grant permission to perform a mutation.
+FoundLab should not duplicate generic provider documentation as custom Skills when the provider maintains an authoritative skill/knowledge source.
 
 ## MCP
 
-Current Codex MCP documentation supports local STDIO servers and Streamable HTTP servers. HTTP connections can use bearer-token and OAuth authentication.
+MCP is capability transport.
 
-Source:
-https://developers.openai.com/codex/mcp
+For Google Cloud, prefer official managed MCP servers. For OpenAI agents, remote/local MCP can expose those capabilities subject to authentication and approvals.
 
-FoundLab MCP design rules:
-- prefer narrow typed tools over arbitrary shell execution;
-- separate read, plan, apply and destructive capabilities;
-- expose provider authority without bypassing provider IAM;
-- keep credentials outside prompts and repository state;
-- preserve a policy gate before write-capable operations.
+### Selection order
 
-## GCP target
+```text
+service-specific managed MCP
+        ↓
+provider generic MCP / CLI escape hatch
+        ↓
+FoundLab custom MCP for FoundLab-only semantics
+```
 
-The planned GCP MCP is intentionally not a `gcloud(anything)` wrapper. See `mcp/foundlab-gcp-mcp/SPEC.md`.
+## Defense in depth
+
+A tool call may need to pass all applicable layers:
+
+1. FoundLab deterministic policy;
+2. executor approval mode/hook/guardrail;
+3. connected app or MCP authentication;
+4. provider IAM;
+5. cloud/repository protections;
+6. evidence recording.
+
+## Tool minimization
+
+Do not expose every available MCP tool to every agent. Restrict servers/toolsets to what the task requires.
+
+## Sources
+
+OpenAI:
+- https://developers.openai.com/api/reference/go/resources/skills
+- https://openai.github.io/openai-agents-python/mcp/
+- https://openai.github.io/openai-agents-python/guardrails/
+
+Google:
+- https://docs.cloud.google.com/mcp/supported-products
+- https://docs.cloud.google.com/mcp/prevent-read-write-tool-use
+- https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/connect-to-the-knowledge-mcp-server
