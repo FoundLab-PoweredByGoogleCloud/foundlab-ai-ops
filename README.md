@@ -197,7 +197,7 @@ Provider-specific manuals record the date official documentation was last checke
 
 ## Status
 
-**v0.2.0 — Multi-Provider Control Plane**
+**v0.2.1 — Codex Review Remediation**
 
 Implemented in this release:
 - multi-provider task routing;
@@ -210,7 +210,8 @@ Implemented in this release:
 - Google/ChatGPT quota-domain separation in decisions;
 - managed-MCP task requirements;
 - GCP MCP read-only deny-policy example;
-- expanded schemas and KATs.
+- expanded schemas and KATs;
+- post-v0.2 Codex review findings remediated with regression tests and explicit Gemini YOLO disable.
 
 ## License
 

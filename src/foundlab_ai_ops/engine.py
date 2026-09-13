@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from .config import policy
+from .config import load_yaml, policy, repo_root
 from .models import (
     Complexity,
     ComputeClass,
@@ -47,6 +47,26 @@ def _compute_class(task: Task) -> tuple[ComputeClass, list[str]]:
     return ComputeClass.balanced, ["routine exploration or general work"]
 
 
+def _requires_remote_capability(task: Task) -> bool:
+    if any(
+        [
+            task.requirements.web,
+            task.requirements.github,
+            task.requirements.gcp,
+            task.requirements.google_docs,
+            task.requirements.linear,
+            task.requirements.drive,
+            bool(task.requirements.managed_mcp),
+        ]
+    ):
+        return True
+
+    return any(
+        request.system not in {"workspace", "shell"}
+        for request in task.requested_actions
+    )
+
+
 def _provider(task: Task) -> tuple[Provider, str]:
     routing = policy("provider-routing")
     defaults = routing.get("defaults", {})
@@ -57,24 +77,49 @@ def _provider(task: Task) -> tuple[Provider, str]:
     if (
         task.expected.repetitive
         and task.expected.complexity == Complexity.low
-        and not any(
-            [
-                task.requirements.web,
-                task.requirements.github,
-                task.requirements.gcp,
-                task.requirements.google_docs,
-                task.requirements.linear,
-                task.requirements.drive,
-                task.requested_actions,
-            ]
-        )
+        and not _requires_remote_capability(task)
+        and not task.requested_actions
     ):
         return Provider.deterministic, "bounded work can run without an LLM provider"
 
-    if task.requirements.gcp or task.requirements.google_docs:
+    # v0.2 managed_mcp currently denotes entries from mcp/google-managed.yaml.
+    # A task that requires one of those endpoints must not be routed to local-only
+    # deterministic execution.
+    if (
+        task.requirements.gcp
+        or task.requirements.google_docs
+        or task.requirements.managed_mcp
+    ):
         return Provider.google, "Google authority/capabilities are required"
 
     return Provider(str(defaults.get("provider", "openai"))), "default agentic provider"
+
+
+def _allowed_surfaces(provider: Provider) -> set[str]:
+    registry = load_yaml(repo_root() / "providers" / "registry.yaml")
+    entry = registry.get("providers", {}).get(provider.value, {})
+    return {str(surface) for surface in entry.get("surfaces", [])}
+
+
+def _provider_compatibility_issue(
+    task: Task,
+    provider: Provider,
+    surface: str,
+) -> str | None:
+    if provider == Provider.deterministic and _requires_remote_capability(task):
+        return (
+            "deterministic provider is incompatible with required remote "
+            "capabilities; select an agentic provider or remove the remote dependency"
+        )
+
+    allowed_surfaces = _allowed_surfaces(provider)
+    if surface not in allowed_surfaces:
+        return (
+            f"surface {surface!r} is not registered for provider {provider.value!r}; "
+            f"select one of {sorted(allowed_surfaces)!r}"
+        )
+
+    return None
 
 
 def _execution_mode(task: Task) -> ExecutionMode:
@@ -158,6 +203,54 @@ def plan(task: Task, quota: QuotaSnapshot) -> Decision:
         profile = "conservative"
         max_agents = 1
 
+    # A hard policy DENY outranks routing incompatibility, quota pressure and
+    # other operational blockers. Preserve the strongest prohibition.
+    if permission_status == DecisionStatus.deny:
+        return Decision(
+            decision=DecisionStatus.deny,
+            profile="conservative",
+            provider=provider,
+            surface=surface,
+            execution_mode=execution_mode,
+            compute_class=compute_class,
+            reasoning=reasoning,
+            fast_mode=False,
+            max_agents=0,
+            sandbox="read-only",
+            external_writes=False,
+            required_sources=_sources(task),
+            required_checks=_checks(task),
+            managed_mcp=_managed_mcp(task),
+            telemetry_required=True,
+            permission_checks=permission_checks,
+            rationale=[
+                *rationale,
+                "one or more requested capabilities are denied by policy",
+            ],
+        )
+
+    compatibility_issue = _provider_compatibility_issue(task, provider, surface)
+    if compatibility_issue is not None:
+        return Decision(
+            decision=DecisionStatus.blocked,
+            profile="conservative",
+            provider=provider,
+            surface=surface,
+            execution_mode=execution_mode,
+            compute_class=compute_class,
+            reasoning=reasoning,
+            fast_mode=False,
+            max_agents=0,
+            sandbox="read-only",
+            external_writes=False,
+            required_sources=_sources(task),
+            required_checks=[*_checks(task), "provider_compatibility"],
+            managed_mcp=_managed_mcp(task),
+            telemetry_required=True,
+            permission_checks=permission_checks,
+            rationale=[*rationale, compatibility_issue],
+        )
+
     # The local snapshot is currently scoped to ChatGPT Work/Codex. It must not
     # be presented as a universal live quota for Google or API billing domains.
     if quota_mode == "AMBER":
@@ -205,10 +298,7 @@ def plan(task: Task, quota: QuotaSnapshot) -> Decision:
                 )
             profile = "incident"
 
-    if permission_status == DecisionStatus.deny:
-        status = DecisionStatus.deny
-        rationale.append("one or more requested capabilities are denied by policy")
-    elif task.execution.destructive_operations:
+    if task.execution.destructive_operations:
         status = DecisionStatus.review
         rationale.append("destructive operation requires explicit review")
     elif task.execution.remote_writes:
@@ -247,7 +337,9 @@ def _checks(task: Task) -> list[str]:
         checks.append("repository_state")
     if task.requested_actions:
         checks.append("permission_guard")
-    if task.requirements.managed_mcp:
+    # Use effective dependencies, not only explicitly declared ones.
+    # google_docs implicitly adds developer_knowledge in _managed_mcp().
+    if _managed_mcp(task):
         checks.append("mcp_registry")
     return checks
 

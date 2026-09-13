@@ -13,11 +13,14 @@ Do not hard-code one Google coding surface globally.
 ## Gemini CLI baseline
 
 The generated/example settings intentionally:
-- use default approval mode rather than auto-edit/yolo;
+- use default approval mode rather than auto-edit/YOLO;
+- set `security.disableYoloMode=true`;
 - enable environment-variable redaction;
 - enable OpenTelemetry export to GCP;
 - disable prompt-body telemetry by default;
 - install a BeforeTool hook that delegates mutation decisions to `flops`.
+
+The explicit YOLO disable is required because a safe default approval mode alone does not prevent a user/process from requesting YOLO at CLI startup.
 
 Install only after review:
 

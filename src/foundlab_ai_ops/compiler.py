@@ -22,6 +22,8 @@ def gemini_baseline() -> dict:
             "defaultApprovalMode": "default",
         },
         "security": {
+            # Hard-disable YOLO in addition to using the default approval mode.
+            "disableYoloMode": True,
             "environmentVariableRedaction": {
                 "enabled": True,
             },

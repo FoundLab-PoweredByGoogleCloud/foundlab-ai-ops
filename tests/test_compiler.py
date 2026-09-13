@@ -7,8 +7,9 @@ def test_codex_baseline_enables_secret_name_exclusions():
     assert 'approval_policy = "on-request"' in text
 
 
-def test_gemini_baseline_enables_redaction_and_disables_prompt_logging():
+def test_gemini_baseline_enables_redaction_disables_yolo_and_prompt_logging():
     config = gemini_baseline()
+    assert config["security"]["disableYoloMode"] is True
     assert config["security"]["environmentVariableRedaction"]["enabled"] is True
     assert config["telemetry"]["logPrompts"] is False
     assert config["hooks"]["BeforeTool"]

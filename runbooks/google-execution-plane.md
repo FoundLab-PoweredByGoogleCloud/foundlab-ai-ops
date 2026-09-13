@@ -35,7 +35,14 @@ flops compile gemini --output PATH_TO_CANDIDATE_SETTINGS
 flops google doctor --settings PATH_TO_CANDIDATE_SETTINGS
 ```
 
-The candidate enables environment-variable redaction, GCP telemetry with prompt logging disabled, and a BeforeTool policy hook.
+The candidate:
+- uses normal approval mode;
+- sets `security.disableYoloMode=true`;
+- enables environment-variable redaction;
+- enables GCP telemetry with prompt logging disabled;
+- installs a BeforeTool policy hook.
+
+Treat a missing/false `disableYoloMode` as a security warning even when the default approval mode is not YOLO.
 
 ## 5. Prefer managed MCP
 
