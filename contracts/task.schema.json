@@ -51,6 +51,18 @@
             "commands": {"type": "array", "items": {"type": "string"}}
           },
           "additionalProperties": false
+        },
+        "requested_actions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["system", "action"],
+            "properties": {
+              "system": {"type": "string", "minLength": 1},
+              "action": {"type": "string", "minLength": 1}
+            },
+            "additionalProperties": false
+          }
         }
       },
       "additionalProperties": false
