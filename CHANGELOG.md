@@ -3,7 +3,8 @@
 ## 0.2.1 — Codex Review Remediation
 
 - prevent managed-MCP tasks from being routed to deterministic/local-only execution;
-- block explicit deterministic-provider overrides when remote capabilities are required;\n- validate explicit surface overrides against the selected provider registry;
+- block explicit deterministic-provider overrides when remote capabilities are required;
+- validate explicit surface overrides against the selected provider registry;
 - preserve hard permission DENY precedence over provider-compatibility BLOCKED;
 - require the MCP registry check for implicit Developer Knowledge dependencies;
 - hard-disable Gemini CLI YOLO mode in the generated baseline;
