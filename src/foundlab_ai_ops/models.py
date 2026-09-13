@@ -55,6 +55,17 @@ class TaskVerification(BaseModel):
     commands: list[str] = Field(default_factory=list)
 
 
+class RequestedAction(BaseModel):
+    system: str
+    action: str
+
+
+class PermissionCheck(BaseModel):
+    system: str
+    action: str
+    result: Literal["allow", "review", "deny", "explicit"]
+
+
 class Task(BaseModel):
     id: str
     objective: str
@@ -63,6 +74,7 @@ class Task(BaseModel):
     requirements: TaskRequirements = Field(default_factory=TaskRequirements)
     expected: TaskExpected = Field(default_factory=TaskExpected)
     verification: TaskVerification = Field(default_factory=TaskVerification)
+    requested_actions: list[RequestedAction] = Field(default_factory=list)
 
 
 class Decision(BaseModel):
@@ -76,4 +88,5 @@ class Decision(BaseModel):
     external_writes: bool
     required_sources: list[str]
     required_checks: list[str]
+    permission_checks: list[PermissionCheck] = Field(default_factory=list)
     rationale: list[str] = Field(default_factory=list)
