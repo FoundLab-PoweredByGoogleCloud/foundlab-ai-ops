@@ -30,9 +30,34 @@ Memory / Context ---- Skill Registry
         Evidence + Journal
 ```
 
-The system follows one governing rule:
+The governing rule is:
 
 > AI proposes. Policy decides. Executors act. Evidence proves.
+
+## Quick start
+
+Requires Python 3.11+.
+
+```bash
+python -m venv .venv
+source .venv/bin/activate        # Windows: .venv\Scripts\activate
+python -m pip install -e ".[dev]"
+
+flops doctor
+flops codex doctor
+flops gcp doctor
+
+flops plugins
+flops skills
+flops source
+flops authorize github write
+
+flops quota set --five-hour 100 --weekly 100
+flops quota status
+
+flops recall "memory"
+flops plan examples/tasks/repo-audit.yaml
+```
 
 ## What belongs here
 
@@ -43,8 +68,8 @@ The system follows one governing rule:
 - reusable Skills;
 - plugin/capability registry;
 - institutional Memory Bank schemas and indexes;
-- Codex operating profiles;
-- GCP keyless-access patterns;
+- Codex operating profiles and diagnostics;
+- GCP keyless-access patterns and diagnostics;
 - task, decision, evidence and capability contracts;
 - deterministic CLI checks and planning;
 - runbooks and Known Answer Tests.
@@ -60,44 +85,38 @@ The system follows one governing rule:
 
 Use placeholders and local/private configuration for environment-specific values.
 
-## Quick start
-
-Requires Python 3.11+.
-
-```bash
-python -m venv .venv
-source .venv/bin/activate        # Windows: .venv\Scripts\activate
-python -m pip install -e ".[dev]"
-
-flops doctor
-flops plugins
-flops skills
-flops quota status
-flops plan examples/tasks/repo-audit.yaml
-```
-
 ## Repository map
 
 ```text
 src/foundlab_ai_ops/   deterministic Python control plane
 policies/              policy-as-code
 profiles/              execution profiles
+agents/                bounded execution profiles
 skills/                workflow-as-code
 plugins/               capability registry
 memory-bank/           institutional memory-as-code
 contracts/             JSON Schemas
 codex/                 Codex configuration examples
 gcp/                   keyless Google Cloud access guidance
+mcp/                   typed MCP capability specifications
+docs/                  operating manuals and architecture
 runbooks/              operational procedures
 examples/              non-sensitive examples
 tests/                 policy and engine KATs
 ```
 
+## Core contracts
+
+- **Skill** — how to perform a class of work.
+- **Policy** — what is allowed.
+- **Plugin/capability** — what external system or action is available.
+- **Memory** — durable context and authority pointers.
+- **Engine** — what execution decision follows from task + policy + quota.
+- **Evidence** — what proves what happened.
+
 ## Authority model
 
 This repository can be authoritative for durable AI operating policy. It must not be used as a cache of rapidly changing external state.
-
-Examples:
 
 | Question | Authority |
 | --- | --- |
@@ -110,12 +129,40 @@ Examples:
 
 Memory is context. It is never allowed to silently override current authoritative evidence.
 
+## Manuals
+
+- [Architecture](docs/architecture.md)
+- [OpenAI operations](docs/openai-operations.md)
+- [Model routing](docs/model-routing.md)
+- [Codex governance](docs/codex-governance.md)
+- [Plugins, Skills and MCP](docs/plugins-skills-mcp.md)
+- [Memory and context](docs/memory-and-context.md)
+- [Prompt/task contracts](docs/prompt-contracts.md)
+- [Google Cloud access](gcp/README.md)
+- [Planned GCP MCP](mcp/foundlab-gcp-mcp/SPEC.md)
+
+The OpenAI-specific manuals record the date on which official provider documentation was last checked. Provider behavior is not assumed to be immutable.
+
+## Security posture
+
+The baseline is deliberately conservative:
+
+- read can be automatic;
+- writes require review;
+- destructive operations are denied or require explicit authorization;
+- Codex shell secret-name exclusions are expected to be enabled;
+- `danger-full-access` is not a normal operating mode;
+- GCP persistent service-account keys are outside the supported baseline;
+- external live state must be queried from its authority rather than trusted from memory.
+
+See [SECURITY.md](SECURITY.md).
+
 ## Status
 
 **v0.1.0 — Operational Baseline**
 
-The initial release establishes deterministic task planning, policy evaluation, quota state, plugin/skill registries, memory-bank metadata, security defaults, and CI validation.
+The initial release establishes deterministic task planning, model/quota routing, capability-policy evaluation, authority resolution, local audit journaling, plugin/skill registries, memory-bank metadata, Codex/GCP diagnostics, security defaults, schemas, CI validation, and initial Known Answer Tests.
 
 ## License
 
-Apache-2.0. See `LICENSE`.
+Apache-2.0. See `LICENSE` and `NOTICE`.
