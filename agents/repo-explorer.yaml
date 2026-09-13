@@ -1,0 +1,12 @@
+version: 1
+id: repo-explorer
+description: Read-heavy repository archaeology and evidence discovery.
+defaults:
+  model_class: terra
+  reasoning: low
+  max_agents: 1
+skills: [repo-audit]
+capabilities: [git, github]
+permissions:
+  remote_write: deny
+memory_namespaces: [organization]
