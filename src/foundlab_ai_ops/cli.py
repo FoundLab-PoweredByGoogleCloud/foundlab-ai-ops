@@ -15,7 +15,9 @@ from .engine import plan as make_plan
 from .journal import append_decision
 from .memory import recall
 from .models import Task
+from .permissions import evaluate as evaluate_permission
 from .quota import load_quota, mode as quota_mode, set_quota
+from .sources import authority_for, known_topics
 
 app = typer.Typer(help="FoundLab AI Ops control plane")
 quota_app = typer.Typer(help="Manage local quota snapshots")
@@ -58,6 +60,32 @@ def plan_command(task_file: Path) -> None:
     output = decision.model_dump(mode="json")
     append_decision(task.model_dump(mode="json"), output)
     console.print_json(json.dumps(output))
+
+
+@app.command("authorize")
+def authorize(system: str, action: str) -> None:
+    """Evaluate one declared capability against FoundLab policy."""
+    console.print(
+        {
+            "system": system,
+            "action": action,
+            "policy": evaluate_permission(system, action),
+            "note": "Provider IAM and product permissions still apply.",
+        }
+    )
+
+
+@app.command("source")
+def source(topic: str | None = None) -> None:
+    """Resolve the authority for a topic, or list known topics."""
+    if topic is None:
+        console.print(known_topics())
+        return
+    try:
+        console.print({"topic": topic, "authority": authority_for(topic)})
+    except KeyError as exc:
+        console.print(f"[red]{exc}[/red]")
+        raise typer.Exit(code=2)
 
 
 @app.command("plugins")
