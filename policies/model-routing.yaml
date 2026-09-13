@@ -1,0 +1,30 @@
+version: 1
+
+# Logical classes, not provider model IDs.
+# Deployments map these classes to models available in the current product/plan.
+classes:
+  luna:
+    intent: bounded_repetitive_high_volume
+    default_reasoning: low
+  terra:
+    intent: exploration_routine_engineering
+    default_reasoning: low
+  sol:
+    intent: complex_professional_work
+    default_reasoning: medium
+  astra:
+    intent: frontier_or_escalated_reasoning
+    default_reasoning: low
+
+defaults:
+  class: terra
+  fast_mode: false
+  max_parallel_agents: 2
+
+escalation:
+  order: [terra, sol, astra]
+  rules:
+    - escalate_for_reasoning_difficulty
+    - do_not_escalate_for_missing_context
+    - do_not_escalate_for_missing_permissions
+    - do_not_escalate_for_missing_evidence
