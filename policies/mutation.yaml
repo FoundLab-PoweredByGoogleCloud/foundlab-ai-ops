@@ -1,0 +1,21 @@
+version: 1
+
+levels:
+  read:
+    default: allow
+  local_write:
+    default: allow
+    conditions:
+      - workspace_only
+      - reversible
+  remote_write:
+    default: review
+  destructive:
+    default: explicit
+
+invariants:
+  - inspect_does_not_imply_modify
+  - review_does_not_imply_merge
+  - plan_does_not_imply_deploy
+  - draft_does_not_imply_send
+  - no_silent_security_weakening
