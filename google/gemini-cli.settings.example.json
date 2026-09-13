@@ -3,6 +3,7 @@
     "defaultApprovalMode": "default"
   },
   "security": {
+    "disableYoloMode": true,
     "environmentVariableRedaction": {
       "enabled": true
     }
