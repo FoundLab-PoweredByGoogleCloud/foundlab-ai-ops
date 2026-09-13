@@ -6,10 +6,49 @@ import sys
 from .permissions import evaluate
 
 
+READ_VERBS = (
+    "_get_",
+    "_list_",
+    "_read_",
+    "_search_",
+    "_query_",
+    "_describe_",
+    "_explain_",
+    "_inspect_",
+)
+
+DESTRUCTIVE_VERBS = (
+    "_delete_",
+    "_remove_",
+    "_destroy_",
+    "_drop_",
+)
+
+WRITE_VERBS = (
+    "_create_",
+    "_update_",
+    "_deploy_",
+    "_commit_",
+    "_publish_",
+    "_send_",
+    "_apply_",
+    "_set_",
+    "_patch_",
+    "_insert_",
+)
+
+
 def _system_action(tool_name: str, tool_input: dict) -> tuple[str, str]:
+    normalized = f"_{tool_name.casefold()}_"
+
     if tool_name.startswith("mcp_"):
-        # MCP tool names are server/tool specific. Unknown writes are never
-        # auto-approved by the FoundLab hook.
+        if any(marker in normalized for marker in DESTRUCTIVE_VERBS):
+            return "mcp", "destructive"
+        if any(marker in normalized for marker in READ_VERBS):
+            return "mcp", "read"
+        if any(marker in normalized for marker in WRITE_VERBS):
+            return "mcp", "write"
+        # Unknown remote capability is not assumed read-only.
         return "mcp", "write"
 
     if tool_name in {"write_file", "replace"}:
@@ -70,6 +109,6 @@ def run_gemini_before_tool() -> int:
         sys.stdout.write(json.dumps(result))
         return 0
     except Exception as exc:
-        # Fail closed for a policy hook. Gemini hook exit code 2 blocks target action.
+        # Gemini CLI hook exit code 2 blocks the target action.
         sys.stderr.write(f"FoundLab policy hook failure: {exc}")
         return 2
