@@ -1,17 +1,21 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://foundlab.ai/schemas/decision.schema.json",
-  "title": "FoundLab AI Ops Decision",
+  "title": "FoundLab AI Ops Multi-Provider Decision",
   "type": "object",
   "required": [
-    "decision", "profile", "model_class", "reasoning", "fast_mode",
-    "max_agents", "sandbox", "external_writes", "required_sources",
-    "required_checks", "permission_checks", "rationale"
+    "decision", "profile", "provider", "surface", "execution_mode",
+    "compute_class", "reasoning", "fast_mode", "max_agents", "sandbox",
+    "external_writes", "required_sources", "required_checks", "managed_mcp",
+    "telemetry_required", "permission_checks", "rationale"
   ],
   "properties": {
     "decision": {"enum": ["ALLOW", "REVIEW", "DENY", "BLOCKED"]},
     "profile": {"type": "string"},
-    "model_class": {"type": "string"},
+    "provider": {"enum": ["deterministic", "openai", "google"]},
+    "surface": {"type": "string"},
+    "execution_mode": {"enum": ["interactive", "standard", "background", "flex", "batch"]},
+    "compute_class": {"enum": ["economy", "balanced", "professional", "frontier"]},
     "reasoning": {"type": "string"},
     "fast_mode": {"type": "boolean"},
     "max_agents": {"type": "integer", "minimum": 0},
@@ -19,6 +23,8 @@
     "external_writes": {"type": "boolean"},
     "required_sources": {"type": "array", "items": {"type": "string"}},
     "required_checks": {"type": "array", "items": {"type": "string"}},
+    "managed_mcp": {"type": "array", "items": {"type": "string"}},
+    "telemetry_required": {"type": "boolean"},
     "permission_checks": {
       "type": "array",
       "items": {
