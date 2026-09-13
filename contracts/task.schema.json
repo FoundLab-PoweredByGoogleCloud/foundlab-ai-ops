@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://foundlab.ai/schemas/task.schema.json",
+  "title": "FoundLab AI Ops Task Manifest",
+  "type": "object",
+  "required": ["task"],
+  "properties": {
+    "task": {
+      "type": "object",
+      "required": ["id", "objective"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "objective": {"type": "string", "minLength": 1},
+        "risk": {"enum": ["low", "medium", "high", "critical"]},
+        "execution": {
+          "type": "object",
+          "properties": {
+            "type": {"type": "string"},
+            "remote_writes": {"type": "boolean"},
+            "destructive_operations": {"type": "boolean"}
+          },
+          "additionalProperties": false
+        },
+        "requirements": {
+          "type": "object",
+          "properties": {
+            "repositories": {"type": "boolean"},
+            "web": {"type": "boolean"},
+            "github": {"type": "boolean"},
+            "gcp": {"type": "boolean"},
+            "linear": {"type": "boolean"},
+            "drive": {"type": "boolean"}
+          },
+          "additionalProperties": false
+        },
+        "expected": {
+          "type": "object",
+          "properties": {
+            "complexity": {"enum": ["low", "medium", "high", "frontier"]},
+            "ambiguity": {"enum": ["low", "medium", "high"]},
+            "repetitive": {"type": "boolean"},
+            "adversarial_review": {"type": "boolean"},
+            "unresolved_after_escalation": {"type": "boolean"}
+          },
+          "additionalProperties": false
+        },
+        "verification": {
+          "type": "object",
+          "properties": {
+            "required": {"type": "boolean"},
+            "commands": {"type": "array", "items": {"type": "string"}}
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
