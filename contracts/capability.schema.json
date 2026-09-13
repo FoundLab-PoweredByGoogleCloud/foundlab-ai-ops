@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://foundlab.ai/schemas/capability.schema.json",
+  "title": "Capability Declaration",
+  "type": "object",
+  "required": ["id", "type", "authority_for", "policy"],
+  "properties": {
+    "id": {"type": "string"},
+    "type": {"type": "string"},
+    "authority_for": {"type": "array", "items": {"type": "string"}},
+    "policy": {
+      "type": "object",
+      "properties": {
+        "read": {"enum": ["allow", "review", "deny", "explicit"]},
+        "write": {"enum": ["allow", "review", "deny", "explicit"]},
+        "destructive": {"enum": ["allow", "review", "deny", "explicit"]}
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}
