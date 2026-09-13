@@ -1,0 +1,11 @@
+version: 1
+name: research
+purpose: source-heavy exploration and synthesis
+
+defaults:
+  model_class: terra
+  reasoning: low
+  fast_mode: false
+  max_agents: 2
+  sandbox: read-only
+  remote_writes: deny
