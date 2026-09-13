@@ -6,7 +6,7 @@
   "required": [
     "decision", "profile", "model_class", "reasoning", "fast_mode",
     "max_agents", "sandbox", "external_writes", "required_sources",
-    "required_checks", "rationale"
+    "required_checks", "permission_checks", "rationale"
   ],
   "properties": {
     "decision": {"enum": ["ALLOW", "REVIEW", "DENY", "BLOCKED"]},
@@ -19,6 +19,19 @@
     "external_writes": {"type": "boolean"},
     "required_sources": {"type": "array", "items": {"type": "string"}},
     "required_checks": {"type": "array", "items": {"type": "string"}},
+    "permission_checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["system", "action", "result"],
+        "properties": {
+          "system": {"type": "string"},
+          "action": {"type": "string"},
+          "result": {"enum": ["allow", "review", "deny", "explicit"]}
+        },
+        "additionalProperties": false
+      }
+    },
     "rationale": {"type": "array", "items": {"type": "string"}}
   },
   "additionalProperties": false
