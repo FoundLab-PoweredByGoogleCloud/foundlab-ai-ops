@@ -13,6 +13,7 @@ from rich.table import Table
 from .config import load_yaml, repo_root
 from .engine import plan as make_plan
 from .journal import append_decision
+from .memory import recall
 from .models import Task
 from .quota import load_quota, mode as quota_mode, set_quota
 
@@ -83,6 +84,16 @@ def skills_command() -> None:
     for name, entry in data.get("skills", {}).items():
         table.add_row(name, str(entry.get("version", "")), str(entry.get("risk_class", "")))
     console.print(table)
+
+
+@app.command("recall")
+def recall_command(query: str) -> None:
+    """Search the institutional Memory Bank without inventing semantic matches."""
+    hits = recall(query)
+    if not hits:
+        console.print("No institutional memory match.")
+        return
+    console.print_json(json.dumps(hits))
 
 
 @quota_app.command("status")
