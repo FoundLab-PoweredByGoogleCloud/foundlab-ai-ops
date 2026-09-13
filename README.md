@@ -210,7 +210,8 @@ Implemented in this release:
 - Google/ChatGPT quota-domain separation in decisions;
 - managed-MCP task requirements;
 - GCP MCP read-only deny-policy example;
-- expanded schemas and KATs;\n- post-v0.2 Codex review findings remediated with regression tests and explicit Gemini YOLO disable.
+- expanded schemas and KATs;
+- post-v0.2 Codex review findings remediated with regression tests and explicit Gemini YOLO disable.
 
 ## License
 
