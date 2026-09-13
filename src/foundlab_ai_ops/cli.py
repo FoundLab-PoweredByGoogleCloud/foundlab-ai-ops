@@ -10,6 +10,8 @@ from pydantic import ValidationError
 from rich.console import Console
 from rich.table import Table
 
+from .adapters.codex import diagnose as diagnose_codex
+from .adapters.gcp import diagnose as diagnose_gcp
 from .config import load_yaml, repo_root
 from .engine import plan as make_plan
 from .journal import append_decision
@@ -21,7 +23,11 @@ from .sources import authority_for, known_topics
 
 app = typer.Typer(help="FoundLab AI Ops control plane")
 quota_app = typer.Typer(help="Manage local quota snapshots")
+gcp_app = typer.Typer(help="Google Cloud diagnostics")
+codex_app = typer.Typer(help="Codex diagnostics")
 app.add_typer(quota_app, name="quota")
+app.add_typer(gcp_app, name="gcp")
+app.add_typer(codex_app, name="codex")
 console = Console()
 
 
@@ -122,6 +128,25 @@ def recall_command(query: str) -> None:
         console.print("No institutional memory match.")
         return
     console.print_json(json.dumps(hits))
+
+
+@gcp_app.command("doctor")
+def gcp_doctor() -> None:
+    """Inspect local gcloud identity configuration without exposing credentials."""
+    result = diagnose_gcp().to_dict()
+    console.print_json(json.dumps(result))
+    if result.get("persistent_key_risk"):
+        console.print(
+            "[yellow]Warning:[/yellow] GOOGLE_APPLICATION_CREDENTIALS points to a JSON file. "
+            "Prefer short-lived/impersonated credentials where practical."
+        )
+
+
+@codex_app.command("doctor")
+def codex_doctor(config: Path | None = None) -> None:
+    """Inspect Codex security-relevant configuration without modifying it."""
+    result = diagnose_codex(config).to_dict()
+    console.print_json(json.dumps(result))
 
 
 @quota_app.command("status")
