@@ -44,12 +44,25 @@ def test_gcp_requirement_routes_google():
     assert decision.surface == "google_coding"
 
 
-def test_google_docs_adds_developer_knowledge_mcp():
+def test_managed_mcp_only_disqualifies_deterministic_routing():
+    t = task(
+        execution={"type": "general"},
+        requirements={"managed_mcp": ["logging"]},
+        expected={"complexity": "low", "repetitive": True},
+    )
+    decision = plan(t, QuotaSnapshot(100, 100))
+    assert decision.provider == Provider.google
+    assert decision.surface != "local_python"
+    assert "mcp_registry" in decision.required_checks
+
+
+def test_google_docs_adds_developer_knowledge_mcp_and_registry_check():
     t = task(requirements={"google_docs": True})
     decision = plan(t, QuotaSnapshot(100, 100))
     assert decision.provider == Provider.google
     assert "developer_knowledge" in decision.managed_mcp
     assert "google_developer_knowledge" in decision.required_sources
+    assert "mcp_registry" in decision.required_checks
 
 
 def test_bulk_routes_batch_mode():
