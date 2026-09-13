@@ -1,0 +1,16 @@
+# FoundLab AI Ops — security-first Codex baseline
+#
+# Validate option names against the Codex version installed in your environment.
+# Provider model IDs intentionally remain environment-specific.
+
+model_reasoning_effort = "medium"
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"
+web_search = "cached"
+
+[shell_environment_policy]
+# Keep default secret-name exclusions enabled.
+ignore_default_excludes = false
+
+# Model selection is governed logically by policies/model-routing.yaml.
+# Map the selected logical class to a provider model available in your account.
