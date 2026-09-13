@@ -1,3 +1,1 @@
-"""FoundLab AI Ops multi-provider control plane."""
-
-__version__ = "0.2.0"
+"""FoundLab AI Ops multi-provider control plane."""\n\n__version__ = "0.2.1"\n
