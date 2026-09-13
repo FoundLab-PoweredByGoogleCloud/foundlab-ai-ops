@@ -1,0 +1,12 @@
+version: 1
+id: release-reviewer
+description: Evidence-driven GO/NO-GO reviewer.
+defaults:
+  model_class: sol
+  reasoning: medium
+  max_agents: 1
+skills: [release-gate, repo-audit]
+capabilities: [git, github]
+permissions:
+  remote_write: deny
+memory_namespaces: [organization]
