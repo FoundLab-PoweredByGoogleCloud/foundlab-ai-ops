@@ -181,6 +181,36 @@ def plan(task: Task, quota: QuotaSnapshot) -> Decision:
     permission_checks = _permission_checks(task)
     permission_status = _permission_status(permission_checks)
 
+    if task.risk in {Risk.high, Risk.critical} or task.execution.type == "release":
+        profile = "conservative"
+        max_agents = 1
+
+    # A hard policy DENY outranks routing incompatibility, quota pressure and
+    # other operational blockers. Preserve the strongest prohibition.
+    if permission_status == DecisionStatus.deny:
+        return Decision(
+            decision=DecisionStatus.deny,
+            profile="conservative",
+            provider=provider,
+            surface=surface,
+            execution_mode=execution_mode,
+            compute_class=compute_class,
+            reasoning=reasoning,
+            fast_mode=False,
+            max_agents=0,
+            sandbox="read-only",
+            external_writes=False,
+            required_sources=_sources(task),
+            required_checks=_checks(task),
+            managed_mcp=_managed_mcp(task),
+            telemetry_required=True,
+            permission_checks=permission_checks,
+            rationale=[
+                *rationale,
+                "one or more requested capabilities are denied by policy",
+            ],
+        )
+
     compatibility_issue = _provider_compatibility_issue(task, provider)
     if compatibility_issue is not None:
         return Decision(
@@ -202,10 +232,6 @@ def plan(task: Task, quota: QuotaSnapshot) -> Decision:
             permission_checks=permission_checks,
             rationale=[*rationale, compatibility_issue],
         )
-
-    if task.risk in {Risk.high, Risk.critical} or task.execution.type == "release":
-        profile = "conservative"
-        max_agents = 1
 
     # The local snapshot is currently scoped to ChatGPT Work/Codex. It must not
     # be presented as a universal live quota for Google or API billing domains.
@@ -254,10 +280,7 @@ def plan(task: Task, quota: QuotaSnapshot) -> Decision:
                 )
             profile = "incident"
 
-    if permission_status == DecisionStatus.deny:
-        status = DecisionStatus.deny
-        rationale.append("one or more requested capabilities are denied by policy")
-    elif task.execution.destructive_operations:
+    if task.execution.destructive_operations:
         status = DecisionStatus.review
         rationale.append("destructive operation requires explicit review")
     elif task.execution.remote_writes:
