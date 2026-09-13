@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://foundlab.ai/schemas/decision.schema.json",
+  "title": "FoundLab AI Ops Decision",
+  "type": "object",
+  "required": [
+    "decision", "profile", "model_class", "reasoning", "fast_mode",
+    "max_agents", "sandbox", "external_writes", "required_sources",
+    "required_checks", "rationale"
+  ],
+  "properties": {
+    "decision": {"enum": ["ALLOW", "REVIEW", "DENY", "BLOCKED"]},
+    "profile": {"type": "string"},
+    "model_class": {"type": "string"},
+    "reasoning": {"type": "string"},
+    "fast_mode": {"type": "boolean"},
+    "max_agents": {"type": "integer", "minimum": 0},
+    "sandbox": {"type": "string"},
+    "external_writes": {"type": "boolean"},
+    "required_sources": {"type": "array", "items": {"type": "string"}},
+    "required_checks": {"type": "array", "items": {"type": "string"}},
+    "rationale": {"type": "array", "items": {"type": "string"}}
+  },
+  "additionalProperties": false
+}
