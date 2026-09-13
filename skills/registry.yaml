@@ -1,0 +1,23 @@
+version: 1
+
+skills:
+  repo-audit:
+    version: 0.1.0
+    risk_class: medium
+    path: skills/repo-audit/SKILL.md
+  release-gate:
+    version: 0.1.0
+    risk_class: high
+    path: skills/release-gate/SKILL.md
+  architecture-review:
+    version: 0.1.0
+    risk_class: high
+    path: skills/architecture-review/SKILL.md
+  gcp-runtime-audit:
+    version: 0.1.0
+    risk_class: high
+    path: skills/gcp-runtime-audit/SKILL.md
+  incident-triage:
+    version: 0.1.0
+    risk_class: critical
+    path: skills/incident-triage/SKILL.md
