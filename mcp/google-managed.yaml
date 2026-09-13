@@ -10,6 +10,15 @@ servers:
     authority_for:
       - google_developer_documentation
 
+  agent_registry:
+    endpoint: https://agentregistry.googleapis.com/mcp
+    class: discovery
+    default_policy: review_writes
+    authority_for:
+      - runtime_agent_discovery
+      - runtime_mcp_discovery
+      - runtime_skill_discovery
+
   cloud_run:
     endpoint: https://run.googleapis.com/mcp
     class: cloud_resource
@@ -92,3 +101,4 @@ principles:
   - prefer_managed_mcp_over_custom_provider_wrapper
   - expose_only_required_toolsets
   - provider_iam_remains_authoritative
+  - runtime_registry_is_discovery_not_policy_authority
