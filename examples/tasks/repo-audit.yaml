@@ -1,0 +1,24 @@
+task:
+  id: example-repo-audit
+  objective: Establish the canonical implementation and material evidence before proposing changes.
+  risk: medium
+  execution:
+    type: repo_scan
+    remote_writes: false
+    destructive_operations: false
+  requirements:
+    repositories: true
+    github: true
+    web: false
+    gcp: false
+    linear: false
+    drive: false
+  expected:
+    complexity: medium
+    ambiguity: medium
+    repetitive: false
+    adversarial_review: false
+    unresolved_after_escalation: false
+  verification:
+    required: true
+    commands: []
