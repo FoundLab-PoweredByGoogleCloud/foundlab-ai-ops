@@ -7,6 +7,7 @@ import tomllib
 from pathlib import Path
 
 import yaml
+from jsonschema import Draft202012Validator
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -42,6 +43,22 @@ def validate_structured(path: Path) -> None:
             tomllib.load(handle)
 
 
+def validate_examples() -> list[str]:
+    failures: list[str] = []
+    schema_path = ROOT / "contracts" / "task.schema.json"
+    schema = json.loads(schema_path.read_text(encoding="utf-8"))
+    validator = Draft202012Validator(schema)
+
+    for path in sorted((ROOT / "examples" / "tasks").glob("*.yaml")):
+        payload = yaml.safe_load(path.read_text(encoding="utf-8"))
+        for error in validator.iter_errors(payload):
+            location = ".".join(str(item) for item in error.absolute_path)
+            failures.append(
+                f"{path.relative_to(ROOT)}: schema error at {location or '<root>'}: {error.message}"
+            )
+    return failures
+
+
 def scan_secrets(path: Path) -> list[str]:
     if path.suffix.lower() not in TEXT_EXTENSIONS:
         return []
@@ -58,6 +75,8 @@ def main() -> int:
             failures.append(f"{path.relative_to(ROOT)}: parse error: {exc}")
         for finding in scan_secrets(path):
             failures.append(f"{path.relative_to(ROOT)}: possible secret: {finding}")
+
+    failures.extend(validate_examples())
 
     if failures:
         print("Repository validation failed:")
