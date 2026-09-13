@@ -56,6 +56,21 @@ def test_managed_mcp_only_disqualifies_deterministic_routing():
     assert "mcp_registry" in decision.required_checks
 
 
+def test_explicit_deterministic_provider_is_blocked_for_managed_mcp():
+    t = task(
+        execution={"type": "general", "provider_preference": "deterministic"},
+        requirements={"managed_mcp": ["logging"]},
+        expected={"complexity": "low", "repetitive": True},
+    )
+    decision = plan(t, QuotaSnapshot(100, 100))
+    assert decision.decision == DecisionStatus.blocked
+    assert decision.provider == Provider.deterministic
+    assert decision.surface == "local_python"
+    assert decision.max_agents == 0
+    assert "provider_compatibility" in decision.required_checks
+    assert "mcp_registry" in decision.required_checks
+
+
 def test_google_docs_adds_developer_knowledge_mcp_and_registry_check():
     t = task(requirements={"google_docs": True})
     decision = plan(t, QuotaSnapshot(100, 100))
