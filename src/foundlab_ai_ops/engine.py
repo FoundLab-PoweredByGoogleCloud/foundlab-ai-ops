@@ -48,6 +48,9 @@ def _compute_class(task: Task) -> tuple[ComputeClass, list[str]]:
 
 
 def _provider(task: Task) -> tuple[Provider, str]:
+    routing = policy("provider-routing")
+    defaults = routing.get("defaults", {})
+
     if task.execution.provider_preference is not None:
         return task.execution.provider_preference, "explicit provider preference"
 
@@ -71,7 +74,7 @@ def _provider(task: Task) -> tuple[Provider, str]:
     if task.requirements.gcp or task.requirements.google_docs:
         return Provider.google, "Google authority/capabilities are required"
 
-    return Provider.openai, "default agentic provider"
+    return Provider(str(defaults.get("provider", "openai"))), "default agentic provider"
 
 
 def _execution_mode(task: Task) -> ExecutionMode:
@@ -91,15 +94,24 @@ def _execution_mode(task: Task) -> ExecutionMode:
 def _surface(task: Task, provider: Provider, execution_mode: ExecutionMode) -> str:
     if task.execution.surface_preference:
         return task.execution.surface_preference
+
+    routing = policy("provider-routing")
+    defaults = routing.get("defaults", {})
+
     if provider == Provider.deterministic:
         return "local_python"
+
     if provider == Provider.openai:
-        return "codex" if task.execution.type in ENGINEERING_TYPES else "openai_api"
+        surfaces = defaults.get("openai_surface", {})
+        key = "engineering" if task.execution.type in ENGINEERING_TYPES else "general"
+        return str(surfaces.get(key, "codex" if key == "engineering" else "openai_api"))
+
     if execution_mode in {ExecutionMode.batch, ExecutionMode.flex, ExecutionMode.background}:
         return "gemini_api"
-    if task.execution.type in ENGINEERING_TYPES:
-        return "google_coding"
-    return "gemini_api"
+
+    surfaces = defaults.get("google_surface", {})
+    key = "engineering" if task.execution.type in ENGINEERING_TYPES else "general"
+    return str(surfaces.get(key, "google_coding" if key == "engineering" else "gemini_api"))
 
 
 def _reasoning(compute_class: ComputeClass) -> str:
@@ -127,7 +139,7 @@ def _permission_status(checks: list[PermissionCheck]) -> DecisionStatus:
 
 
 def plan(task: Task, quota: QuotaSnapshot) -> Decision:
-    routing = policy("model-routing")
+    model_routing = policy("model-routing")
     quota_policy = policy("quota")
     quota_mode = mode(quota, quota_policy)
 
@@ -137,7 +149,7 @@ def plan(task: Task, quota: QuotaSnapshot) -> Decision:
     execution_mode = _execution_mode(task)
     surface = _surface(task, provider, execution_mode)
     reasoning = _reasoning(compute_class)
-    max_agents = int(routing["defaults"]["max_parallel_agents"])
+    max_agents = int(model_routing["defaults"]["max_parallel_agents"])
     profile = "standard"
     permission_checks = _permission_checks(task)
     permission_status = _permission_status(permission_checks)
@@ -146,46 +158,52 @@ def plan(task: Task, quota: QuotaSnapshot) -> Decision:
         profile = "conservative"
         max_agents = 1
 
-    # ChatGPT Work/Codex quota is tracked separately from Google/API usage.
-    # Until provider-native telemetry is wired into the governor, the local
-    # weekly snapshot conservatively governs premium interactive execution.
+    # The local snapshot is currently scoped to ChatGPT Work/Codex. It must not
+    # be presented as a universal live quota for Google or API billing domains.
     if quota_mode == "AMBER":
-        rationale.append("local agentic quota is AMBER")
-        if compute_class == ComputeClass.frontier and task.risk != Risk.critical:
+        rationale.append("local ChatGPT Work/Codex quota snapshot is AMBER")
+        if (
+            provider == Provider.openai
+            and surface == "codex"
+            and compute_class == ComputeClass.frontier
+            and task.risk != Risk.critical
+        ):
             compute_class = ComputeClass.professional
             reasoning = _reasoning(compute_class)
-            rationale.append("frontier compute restricted outside critical work")
+            rationale.append("frontier Codex compute restricted outside critical work")
     elif quota_mode == "RED":
-        rationale.append("local agentic quota is RED")
-        max_agents = 1
-        if task.risk not in {Risk.high, Risk.critical}:
-            compute_class = ComputeClass.balanced
-            reasoning = _reasoning(compute_class)
-            rationale.append("preserving reserve for high-risk work")
+        rationale.append("local ChatGPT Work/Codex quota snapshot is RED")
+        if provider == Provider.openai and surface == "codex":
+            max_agents = 1
+            if task.risk not in {Risk.high, Risk.critical}:
+                compute_class = ComputeClass.balanced
+                reasoning = _reasoning(compute_class)
+                rationale.append("preserving Codex reserve for high-risk work")
     elif quota_mode == "CRITICAL":
-        rationale.append("local agentic quota is CRITICAL")
-        max_agents = 0
-        if task.risk != Risk.critical and provider == Provider.openai and surface == "codex":
-            return Decision(
-                decision=DecisionStatus.blocked,
-                profile="incident",
-                provider=provider,
-                surface=surface,
-                execution_mode=execution_mode,
-                compute_class=ComputeClass.balanced,
-                reasoning="low",
-                fast_mode=False,
-                max_agents=0,
-                sandbox="read-only",
-                external_writes=False,
-                required_sources=_sources(task),
-                required_checks=_checks(task),
-                managed_mcp=_managed_mcp(task),
-                telemetry_required=True,
-                permission_checks=permission_checks,
-                rationale=rationale + ["non-critical Codex work blocked to preserve incident reserve"],
-            )
-        profile = "incident"
+        rationale.append("local ChatGPT Work/Codex quota snapshot is CRITICAL")
+        if provider == Provider.openai and surface == "codex":
+            max_agents = 0
+            if task.risk != Risk.critical:
+                return Decision(
+                    decision=DecisionStatus.blocked,
+                    profile="incident",
+                    provider=provider,
+                    surface=surface,
+                    execution_mode=execution_mode,
+                    compute_class=ComputeClass.balanced,
+                    reasoning="low",
+                    fast_mode=False,
+                    max_agents=0,
+                    sandbox="read-only",
+                    external_writes=False,
+                    required_sources=_sources(task),
+                    required_checks=_checks(task),
+                    managed_mcp=_managed_mcp(task),
+                    telemetry_required=True,
+                    permission_checks=permission_checks,
+                    rationale=rationale + ["non-critical Codex work blocked to preserve incident reserve"],
+                )
+            profile = "incident"
 
     if permission_status == DecisionStatus.deny:
         status = DecisionStatus.deny
