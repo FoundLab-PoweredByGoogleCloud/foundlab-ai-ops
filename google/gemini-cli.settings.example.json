@@ -1,0 +1,33 @@
+{
+  "general": {
+    "defaultApprovalMode": "default"
+  },
+  "security": {
+    "environmentVariableRedaction": {
+      "enabled": true
+    }
+  },
+  "telemetry": {
+    "enabled": true,
+    "target": "gcp",
+    "useCliAuth": true,
+    "logPrompts": false
+  },
+  "hooks": {
+    "BeforeTool": [
+      {
+        "matcher": "write_file|replace|run_shell_command|mcp_.*",
+        "sequential": true,
+        "hooks": [
+          {
+            "name": "foundlab-policy-guard",
+            "type": "command",
+            "command": "flops hook gemini-before-tool",
+            "timeout": 5000,
+            "description": "FoundLab deterministic policy gate"
+          }
+        ]
+      }
+    ]
+  }
+}
