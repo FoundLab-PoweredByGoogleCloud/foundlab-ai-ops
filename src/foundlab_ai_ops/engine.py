@@ -1,7 +1,15 @@
 from __future__ import annotations
 
 from .config import policy
-from .models import Complexity, Decision, DecisionStatus, Risk, Task
+from .models import (
+    Complexity,
+    Decision,
+    DecisionStatus,
+    PermissionCheck,
+    Risk,
+    Task,
+)
+from .permissions import evaluate as evaluate_permission
 from .quota import QuotaSnapshot, mode
 
 
@@ -27,6 +35,25 @@ def _base_model_class(task: Task) -> tuple[str, list[str]]:
     return "terra", ["routine exploration or general work"]
 
 
+def _permission_checks(task: Task) -> list[PermissionCheck]:
+    return [
+        PermissionCheck(
+            system=request.system,
+            action=request.action,
+            result=evaluate_permission(request.system, request.action),
+        )
+        for request in task.requested_actions
+    ]
+
+
+def _permission_status(checks: list[PermissionCheck]) -> DecisionStatus:
+    if any(check.result == "deny" for check in checks):
+        return DecisionStatus.deny
+    if any(check.result in {"review", "explicit"} for check in checks):
+        return DecisionStatus.review
+    return DecisionStatus.allow
+
+
 def plan(task: Task, quota: QuotaSnapshot) -> Decision:
     routing = policy("model-routing")
     quota_policy = policy("quota")
@@ -36,6 +63,8 @@ def plan(task: Task, quota: QuotaSnapshot) -> Decision:
     reasoning = routing["classes"][model_class]["default_reasoning"]
     max_agents = int(routing["defaults"]["max_parallel_agents"])
     profile = "standard"
+    permission_checks = _permission_checks(task)
+    permission_status = _permission_status(permission_checks)
 
     if task.risk in {Risk.high, Risk.critical} or task.execution.type == "release":
         profile = "conservative"
@@ -66,23 +95,26 @@ def plan(task: Task, quota: QuotaSnapshot) -> Decision:
                 sandbox="read-only",
                 external_writes=False,
                 required_sources=_sources(task),
-                required_checks=["quota_guard"],
+                required_checks=_checks(task),
+                permission_checks=permission_checks,
                 rationale=rationale + ["non-critical work blocked to preserve incident reserve"],
             )
         profile = "incident"
 
-    if task.execution.destructive_operations:
+    if permission_status == DecisionStatus.deny:
+        status = DecisionStatus.deny
+        rationale.append("one or more requested capabilities are denied by policy")
+    elif task.execution.destructive_operations:
         status = DecisionStatus.review
         rationale.append("destructive operation requires explicit review")
     elif task.execution.remote_writes:
         status = DecisionStatus.review
         rationale.append("remote write requires explicit review")
+    elif permission_status == DecisionStatus.review:
+        status = DecisionStatus.review
+        rationale.append("one or more requested capabilities require review/explicit approval")
     else:
         status = DecisionStatus.allow
-
-    checks = ["quota_guard", "secret_scan"]
-    if task.requirements.repositories:
-        checks.append("repository_state")
 
     return Decision(
         decision=status,
@@ -91,12 +123,22 @@ def plan(task: Task, quota: QuotaSnapshot) -> Decision:
         reasoning=reasoning,
         fast_mode=False,
         max_agents=max_agents,
-        sandbox="workspace-write" if status != DecisionStatus.blocked else "read-only",
+        sandbox="read-only" if status == DecisionStatus.deny else "workspace-write",
         external_writes=False,
         required_sources=_sources(task),
-        required_checks=checks,
+        required_checks=_checks(task),
+        permission_checks=permission_checks,
         rationale=rationale,
     )
+
+
+def _checks(task: Task) -> list[str]:
+    checks = ["quota_guard", "secret_scan"]
+    if task.requirements.repositories:
+        checks.append("repository_state")
+    if task.requested_actions:
+        checks.append("permission_guard")
+    return checks
 
 
 def _sources(task: Task) -> list[str]:
