@@ -1,0 +1,45 @@
+version: 1
+
+# Registry describes capabilities and authority. Connection state is environment-specific.
+plugins:
+  github:
+    type: connected_app
+    status: environment-dependent
+    authority_for: [repository_remote_state, pull_requests, issues, commits]
+    capability_policy: {read: allow, write: review, destructive: explicit}
+
+  linear:
+    type: connected_app
+    status: environment-dependent
+    authority_for: [backlog, issue_state]
+    capability_policy: {read: allow, write: review, destructive: explicit}
+
+  google_drive:
+    type: connected_app
+    status: environment-dependent
+    authority_for: [approved_documents]
+    capability_policy: {read: allow, write: review, destructive: explicit}
+
+  gmail:
+    type: connected_app
+    status: environment-dependent
+    authority_for: [external_correspondence]
+    capability_policy: {read: allow, write: review, destructive: deny}
+
+  google_calendar:
+    type: connected_app
+    status: environment-dependent
+    authority_for: [calendar_state]
+    capability_policy: {read: allow, write: review, destructive: review}
+
+  slack:
+    type: connected_app
+    status: environment-dependent
+    authority_for: [team_messages]
+    capability_policy: {read: allow, write: review, destructive: explicit}
+
+  gcp:
+    type: local_cli_or_mcp
+    status: planned
+    authority_for: [cloud_runtime, cloud_logs, cloud_metrics, cloud_iam]
+    capability_policy: {inspect: allow, deploy: review, iam_change: deny, destructive: explicit}
