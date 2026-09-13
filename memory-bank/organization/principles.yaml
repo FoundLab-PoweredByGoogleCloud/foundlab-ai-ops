@@ -1,0 +1,17 @@
+version: 1
+entries:
+  - id: ai-proposes-policy-decides
+    type: invariant
+    statement: AI proposes; policy decides; executors act; evidence proves.
+    authority: repository
+    freshness: architectural
+  - id: memory-not-authority
+    type: invariant
+    statement: Memory is context and must not silently override current authoritative evidence.
+    authority: repository
+    freshness: architectural
+  - id: reversible-by-default
+    type: workflow
+    statement: Prefer reversible local actions before remote or destructive mutations.
+    authority: repository
+    freshness: workflow
