@@ -1,0 +1,37 @@
+task:
+  id: example-gcp-runtime-audit
+  objective: Inspect Cloud Run runtime state and correlate logs, metrics and traces without mutating cloud resources.
+  risk: high
+  execution:
+    type: security
+    remote_writes: false
+    destructive_operations: false
+    provider_preference: google
+  requirements:
+    repositories: false
+    web: false
+    github: false
+    gcp: true
+    google_docs: true
+    linear: false
+    drive: false
+    managed_mcp:
+      - cloud_run
+      - logging
+      - monitoring
+      - cloud_trace
+  expected:
+    complexity: high
+    ambiguity: medium
+    latency: normal
+    repetitive: false
+    adversarial_review: false
+    unresolved_after_escalation: false
+  verification:
+    required: true
+    commands: []
+  requested_actions:
+    - system: gcp
+      action: inspect
+    - system: google_managed_mcp
+      action: read
