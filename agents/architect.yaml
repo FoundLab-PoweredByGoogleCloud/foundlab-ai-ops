@@ -1,0 +1,12 @@
+version: 1
+id: architect
+description: Architecture synthesis after evidence collection.
+defaults:
+  model_class: sol
+  reasoning: medium
+  max_agents: 1
+skills: [architecture-review, repo-audit]
+capabilities: [git, github]
+permissions:
+  remote_write: review
+memory_namespaces: [organization]
