@@ -71,6 +71,35 @@ def test_explicit_deterministic_provider_is_blocked_for_managed_mcp():
     assert "mcp_registry" in decision.required_checks
 
 
+def test_local_surface_override_is_blocked_for_google_managed_mcp():
+    t = task(
+        execution={"type": "general", "surface_preference": "local_python"},
+        requirements={"managed_mcp": ["logging"]},
+        expected={"complexity": "low", "repetitive": True},
+    )
+    decision = plan(t, QuotaSnapshot(100, 100))
+    assert decision.decision == DecisionStatus.blocked
+    assert decision.provider == Provider.google
+    assert decision.surface == "local_python"
+    assert decision.max_agents == 0
+    assert "provider_compatibility" in decision.required_checks
+
+
+def test_cross_provider_surface_override_is_blocked():
+    t = task(
+        execution={
+            "type": "general",
+            "provider_preference": "openai",
+            "surface_preference": "gemini_api",
+        },
+    )
+    decision = plan(t, QuotaSnapshot(100, 100))
+    assert decision.decision == DecisionStatus.blocked
+    assert decision.provider == Provider.openai
+    assert decision.surface == "gemini_api"
+    assert "provider_compatibility" in decision.required_checks
+
+
 def test_google_docs_adds_developer_knowledge_mcp_and_registry_check():
     t = task(requirements={"google_docs": True})
     decision = plan(t, QuotaSnapshot(100, 100))
