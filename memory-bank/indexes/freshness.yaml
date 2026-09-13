@@ -1,0 +1,19 @@
+version: 1
+
+classes:
+  immutable:
+    refresh: never
+  architectural:
+    refresh_days: 30
+  workflow:
+    refresh_days: 30
+  commercial:
+    refresh_days: 7
+  runtime:
+    refresh_minutes: 15
+  live:
+    refresh: on_query
+
+rule: >
+  If an entry is older than its freshness class permits, resolve the designated
+  authority before presenting the value as current.
