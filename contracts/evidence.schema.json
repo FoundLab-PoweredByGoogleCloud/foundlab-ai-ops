@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://foundlab.ai/schemas/evidence.schema.json",
+  "title": "Execution Evidence",
+  "type": "object",
+  "required": ["kind", "source", "observed_at", "result"],
+  "properties": {
+    "kind": {"type": "string"},
+    "source": {"type": "string"},
+    "observed_at": {"type": "string", "format": "date-time"},
+    "result": {"enum": ["PASS", "FAIL", "UNKNOWN", "NOT_RUN"]},
+    "reference": {"type": ["string", "null"]},
+    "sha256": {"type": ["string", "null"]},
+    "details": {"type": "object"}
+  },
+  "additionalProperties": false
+}
