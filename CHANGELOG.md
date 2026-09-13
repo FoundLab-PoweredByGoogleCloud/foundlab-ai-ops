@@ -2,12 +2,14 @@
 
 ## 0.2.1 — Codex Review Remediation
 
-- prevent managed-MCP tasks from being routed to deterministic/local-only execution;\n- block explicit deterministic-provider overrides when remote capabilities are required;
+- prevent managed-MCP tasks from being routed to deterministic/local-only execution;
+- block explicit deterministic-provider overrides when remote capabilities are required;
+- preserve hard permission DENY precedence over provider-compatibility BLOCKED;
 - require the MCP registry check for implicit Developer Knowledge dependencies;
 - hard-disable Gemini CLI YOLO mode in the generated baseline;
 - make `flops google doctor` warn when YOLO is not explicitly disabled;
 - defensively warn if a settings file presents YOLO as the approval mode;
-- add regression KATs for all three Codex review findings;
+- add regression KATs for every Codex review finding;
 - require asynchronous agent review completion before merging policy/control-plane changes.
 
 ## 0.2.0 — Multi-Provider Control Plane
