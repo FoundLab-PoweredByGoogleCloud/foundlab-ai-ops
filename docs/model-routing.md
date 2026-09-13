@@ -1,43 +1,59 @@
-# Model Routing
+# Compute and Model Routing
 
-Last provider check: **2026-09-12**.
+Version: 0.2.0
 
-## FoundLab logical router
+The core policy no longer treats provider model names as universal architecture.
 
-| Class | Default use | Default reasoning |
+## Provider-neutral classes
+
+| Compute class | Intent | Default reasoning |
 | --- | --- | --- |
-| Luna | bounded extraction, categorization, repetitive edits | low |
-| Terra | exploration, documents, repo scans, routine engineering | low |
-| Sol | implementation, architecture, security, complex debugging | medium |
-| Astra | frontier ambiguity, hard unresolved bugs, adversarial critical review | low |
+| economy | bounded, repetitive, high-volume | low |
+| balanced | exploration, routine engineering | low |
+| professional | architecture, implementation, security, hard debugging | medium |
+| frontier | hardest unfamiliar/escalated/adversarial work | low, then escalate |
 
-The executable version lives in `policies/model-routing.yaml`.
+OpenAI's current Work/Codex family maps conceptually:
 
-## Current Plus planning ranges
+```text
+Luna  -> economy
+Terra -> balanced
+Sol   -> professional
+Astra -> frontier
+```
 
-OpenAI currently publishes estimated local messages per five-hour period for Plus as:
-- Astra: 5–45;
-- Sol: 10–100;
-- Terra: 25–200;
-- Luna: 250–2,000.
+That mapping is stored as compatibility metadata, not as the universal router.
 
-These are estimates, not fixed message quotas. Task size, context, reasoning, Fast mode and multi-step behavior can materially change usage. Weekly limits may also apply.
+## Routing dimensions
 
-Source:
-https://help.openai.com/en/articles/20001516-managing-usage-with-gpt-6-astra-in-work-and-codex
+A task is routed by:
+
+1. authority/capability requirements;
+2. provider;
+3. surface;
+4. execution mode;
+5. compute class;
+6. reasoning effort;
+7. approval boundary.
 
 ## Escalation test
 
-Escalate only after asking:
+Before increasing compute/reasoning:
 
-1. Is the evidence actually available?
-2. Does the executor have access to it?
-3. Is the task contract unambiguous enough to execute?
-4. Did the prior attempt fail because of reasoning rather than missing input?
-5. Is the increased allowance spend justified by task risk/value?
+1. Is required evidence available?
+2. Is the authoritative system reachable?
+3. Is the task contract unambiguous?
+4. Did the prior attempt fail because of reasoning?
+5. Is the increased cost/quota justified?
 
-If any of 1–3 is false, fix retrieval/permissions/specification first.
+Missing input is a retrieval problem, not a reasoning problem.
 
-## Worker strategy
+## Quota domains
 
-Use the more capable model as synthesizer when needed and cheaper logical classes for bounded parallel exploration. Keep concurrency low enough that humans can still attribute changes and evidence to a worker.
+Do not merge these into one fake percentage:
+- ChatGPT Work/Codex allowance;
+- OpenAI API usage/billing;
+- Gemini Code Assist/Gemini CLI quota;
+- Gemini API usage/billing.
+
+Provider-specific telemetry may be normalized for reporting while preserving its original quota domain.
