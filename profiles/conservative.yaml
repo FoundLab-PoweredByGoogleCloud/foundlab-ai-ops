@@ -1,0 +1,11 @@
+version: 1
+name: conservative
+purpose: audits, releases, security-sensitive and high-risk tasks
+
+defaults:
+  model_class: sol
+  reasoning: medium
+  fast_mode: false
+  max_agents: 1
+  sandbox: read-only
+  remote_writes: deny
