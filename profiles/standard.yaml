@@ -1,0 +1,11 @@
+version: 1
+name: standard
+purpose: routine engineering and operational work
+
+defaults:
+  model_class: sol
+  reasoning: medium
+  fast_mode: false
+  max_agents: 2
+  sandbox: workspace-write
+  remote_writes: review
