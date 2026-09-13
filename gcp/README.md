@@ -1,22 +1,48 @@
-# Google Cloud Access Baseline
+# Google Cloud Access and Capability Baseline
+
+## Identity
 
 The supported baseline is keyless wherever practical.
 
-## Local workstation
+### Local
+Prefer:
+1. human Google authentication;
+2. Application Default Credentials when required;
+3. narrowly scoped service-account impersonation for privileged operations.
 
-Preferred:
-1. authenticate the human identity;
-2. use Application Default Credentials when application libraries require them;
-3. impersonate a narrowly scoped user-managed service account for privileged operations.
+### Google Cloud runtime
+Attach a user-managed service account with least privilege.
 
-Do not place service-account private key JSON files in this repository or in agent prompts.
+### External CI
+Prefer Workload Identity Federation / OIDC.
 
-## Google Cloud runtime
+Persistent service-account private keys are outside the supported baseline.
 
-Attach a user-managed service account with least privilege to the workload. Use the runtime's native identity/ADC path.
+## Managed MCP
 
-## External CI/CD
+Before building a custom adapter, inspect `mcp/google-managed.yaml`.
 
-Prefer Workload Identity Federation / OIDC over persistent service-account keys.
+Prefer:
+1. service-specific Google Managed MCP;
+2. Cloud CLI MCP only as an explicit escape hatch;
+3. custom FoundLab MCP only for domain semantics.
 
-See `local-auth.md` for a placeholder-based setup pattern.
+This avoids duplicating provider CRUD APIs and allows Google IAM to remain an enforcement layer.
+
+## Read-only MCP enforcement
+
+Where supported, Google Cloud MCP IAM can deny calls to tools not annotated read-only.
+
+Example policy:
+`mcp-readonly-deny-policy.json.example`
+
+Applying IAM policy is itself a privileged operation and is **not** performed automatically by this repository.
+
+## Observability
+
+Gemini CLI can export OpenTelemetry directly to Cloud Logging, Monitoring and Trace. This should feed the FoundLab evidence plane rather than being reimplemented as proprietary telemetry.
+
+See:
+- `google/README.md`
+- `runbooks/google-execution-plane.md`
+- `docs/google-managed-mcp.md`
