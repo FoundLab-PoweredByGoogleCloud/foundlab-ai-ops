@@ -1,0 +1,30 @@
+version: 1
+
+topics:
+  ai_ops_policy:
+    authority: repository
+    location: policies/
+  ai_ops_skills:
+    authority: repository
+    location: skills/
+  ai_ops_plugin_registry:
+    authority: repository
+    location: plugins/registry.yaml
+  repository_live_state:
+    authority: git
+    cache_allowed: false
+  github_remote_state:
+    authority: github
+    cache_allowed: false
+  backlog_live_state:
+    authority: linear
+    cache_allowed: false
+  approved_documents:
+    authority: google_drive
+    cache_allowed: pointer_only
+  cloud_runtime:
+    authority: gcp
+    cache_allowed: false
+  personal_preferences:
+    authority: chatgpt_memory
+    cache_allowed: false
