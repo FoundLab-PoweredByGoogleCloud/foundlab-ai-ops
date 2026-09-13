@@ -1,0 +1,94 @@
+version: 2
+
+# Managed endpoints verified against official Google Cloud documentation.
+# Tool-level permissions still depend on OAuth scopes, IAM and server toolsets.
+servers:
+  developer_knowledge:
+    endpoint: https://developerknowledge.googleapis.com/mcp
+    class: knowledge
+    default_policy: read
+    authority_for:
+      - google_developer_documentation
+
+  cloud_run:
+    endpoint: https://run.googleapis.com/mcp
+    class: cloud_resource
+    default_policy: review_writes
+    authority_for:
+      - cloud_run_state
+
+  bigquery:
+    endpoint: https://bigquery.googleapis.com/mcp
+    class: data
+    default_policy: review_writes
+    authority_for:
+      - bigquery_state
+
+  spanner:
+    endpoint: https://spanner.googleapis.com/mcp
+    class: data
+    default_policy: review_writes
+    authority_for:
+      - spanner_state
+
+  logging:
+    endpoint: https://logging.googleapis.com/mcp
+    class: observability
+    default_policy: read
+    authority_for:
+      - cloud_logs
+
+  monitoring:
+    endpoint: https://monitoring.googleapis.com/mcp
+    class: observability
+    default_policy: read
+    authority_for:
+      - cloud_metrics
+
+  cloud_trace:
+    endpoint: https://cloudtrace.googleapis.com/mcp
+    class: observability
+    default_policy: read
+    authority_for:
+      - cloud_traces
+
+  pubsub:
+    endpoint: https://pubsub.googleapis.com/mcp
+    class: messaging
+    default_policy: review_writes
+    authority_for:
+      - pubsub_state
+
+  cloud_quotas:
+    endpoint: https://cloudquotas.googleapis.com/mcp
+    class: quota
+    default_policy: read
+    authority_for:
+      - gcp_quota_state
+
+  cloud_resource_manager:
+    endpoint: https://cloudresourcemanager.googleapis.com/mcp
+    class: resource_manager
+    default_policy: review_writes
+    authority_for:
+      - gcp_resource_hierarchy
+
+  iam:
+    endpoint: https://iam.googleapis.com/mcp
+    class: identity
+    default_policy: deny_mutation
+    authority_for:
+      - gcp_iam_state
+
+  cloud_cli:
+    endpoint: https://cloudcli.googleapis.com/mcp
+    class: escape_hatch
+    default_policy: explicit
+    authority_for:
+      - gcloud_bq_execution
+
+principles:
+  - prefer_service_specific_mcp_over_cloud_cli
+  - prefer_managed_mcp_over_custom_provider_wrapper
+  - expose_only_required_toolsets
+  - provider_iam_remains_authoritative
