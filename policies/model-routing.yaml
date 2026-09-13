@@ -1,28 +1,33 @@
-version: 1
+version: 2
 
-# Logical classes, not provider model IDs.
-# Deployments map these classes to models available in the current product/plan.
+# Provider-neutral compute classes. Provider/model IDs are deployment-time mappings.
 classes:
-  luna:
+  economy:
     intent: bounded_repetitive_high_volume
     default_reasoning: low
-  terra:
+  balanced:
     intent: exploration_routine_engineering
     default_reasoning: low
-  sol:
+  professional:
     intent: complex_professional_work
     default_reasoning: medium
-  astra:
-    intent: frontier_or_escalated_reasoning
+  frontier:
+    intent: hardest_unfamiliar_or_escalated_reasoning
     default_reasoning: low
 
 defaults:
-  class: terra
+  class: balanced
   fast_mode: false
   max_parallel_agents: 2
 
+legacy_openai_mapping:
+  luna: economy
+  terra: balanced
+  sol: professional
+  astra: frontier
+
 escalation:
-  order: [terra, sol, astra]
+  order: [balanced, professional, frontier]
   rules:
     - escalate_for_reasoning_difficulty
     - do_not_escalate_for_missing_context
