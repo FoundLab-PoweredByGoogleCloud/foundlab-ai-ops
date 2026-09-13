@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://foundlab.ai/schemas/memory.schema.json",
+  "title": "Institutional Memory Entry",
+  "type": "object",
+  "required": ["id", "type", "statement", "authority", "freshness"],
+  "properties": {
+    "id": {"type": "string", "minLength": 1},
+    "type": {
+      "enum": [
+        "architectural_fact", "decision", "invariant", "glossary",
+        "workflow", "authority_pointer", "assumption"
+      ]
+    },
+    "statement": {"type": "string", "minLength": 1},
+    "authority": {"type": "string", "minLength": 1},
+    "freshness": {"type": "string", "minLength": 1},
+    "source": {"type": ["string", "null"]},
+    "supersedes": {"type": ["string", "null"]}
+  },
+  "additionalProperties": false
+}
