@@ -30,3 +30,25 @@ def test_review_capability_requires_review():
 def test_allowed_capability_can_plan():
     decision = plan(make_task("inspect"), QuotaSnapshot(100, 100))
     assert decision.decision == DecisionStatus.allow
+
+
+def test_denied_capability_precedes_provider_compatibility_block():
+    task = Task.model_validate(
+        {
+            "id": "deny-precedence-kat",
+            "objective": "preserve hard policy denial",
+            "risk": "medium",
+            "execution": {
+                "type": "general",
+                "provider_preference": "deterministic",
+            },
+            "requirements": {"gcp": True},
+            "requested_actions": [
+                {"system": "gcp", "action": "iam_change"}
+            ],
+        }
+    )
+    decision = plan(task, QuotaSnapshot(100, 100))
+    assert decision.decision == DecisionStatus.deny
+    assert decision.sandbox == "read-only"
+    assert decision.max_agents == 0
