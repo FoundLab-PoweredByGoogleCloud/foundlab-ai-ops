@@ -52,3 +52,26 @@ def test_denied_capability_precedes_provider_compatibility_block():
     assert decision.decision == DecisionStatus.deny
     assert decision.sandbox == "read-only"
     assert decision.max_agents == 0
+
+
+def test_denied_capability_precedes_critical_codex_quota_block():
+    task = Task.model_validate(
+        {
+            "id": "deny-before-quota-kat",
+            "objective": "preserve hard policy denial under quota pressure",
+            "risk": "medium",
+            "execution": {
+                "type": "repo_scan",
+                "provider_preference": "openai",
+                "surface_preference": "codex",
+            },
+            "requirements": {"repositories": True},
+            "requested_actions": [
+                {"system": "gcp", "action": "iam_change"}
+            ],
+        }
+    )
+    decision = plan(task, QuotaSnapshot(100, 5))
+    assert decision.decision == DecisionStatus.deny
+    assert decision.sandbox == "read-only"
+    assert decision.max_agents == 0
